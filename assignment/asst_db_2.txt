@@ -1,0 +1,31 @@
+Assignment 2, Databases
+
+1. What is a RubyGem and why would you use one?
+
+Ruby Gems consist of Ruby code you can import into your project. Developers use gems to solve problems that they encounter repeatedly in their work. Rather than write a solution from scratch each time, or copy and paste a solution into code, developers can include a Gem in their own project quickly and easily, saving time. Perhaps even more importantly, gems also provide a benefit of being battle-tested by other developers, providing that the gem is popular and in current use.
+
+2. What's the difference between lazy and eager loading?
+
+With eager loading, code is run on program or code execution. Lazy loading code will only run when specifically required. For example, a web page with eager loading of images will cause the browser to download all of the images on visiting the site. In contrast, a lazy loading web app would only prompt a particular image to be downloaded when it was to appear on screen. In the address book code, the 'schema' method is not called at initialization, but rather uses the lazy loading pattern and the method runs when it is needed.
+
+3.  What is the difference between the CREATE TABLE and INSERT INTO SQL statements?
+
+CREATE TABLE creates a database table in SQL composed of columns/attributes. INSERT INTO adds rows/records to this table, populating the database fields. CREATE TABLE provides the structure for the database, while INSERT INTO adds the data itself.
+
+4. What's the difference between 'extend' and 'include'? When would you use one or the other?
+
+Include is used to add methods to an instance of a class. Extend is used to add methods to a class (or, put more properly, for adding class methods). If I want a class to inherit methods I have in a separate module, I would use extend. However, if I only want specific instantiated objects of the class to inherit the methods in the same separate module in the prior example, I would use include. This would be useful if, say, we were dealing with say an edge case and did not want to alter all instances of a class for memory or performance reasons.
+
+5. In 'persistence.rb', why do the save methods need to be instance (vs. class) methods?
+
+For the save method, we want to save the specific database we are working with. An instance method requires us to instantiate the database object first in order to then save it. A class method would not make too much sense here, as we would be saving the same database across all instances of the class.
+
+6. Given the Jar-Jar Binks example earlier, what is the final SQL query in 'persistence.rb's 'save!' method?
+
+UPDATE character SET character_name, star_rating = "Jar-Jar Binks", 1 WHERE id = 7;
+
+(I assumed that Jar-Jar's id was 7; I don't believe it was actually established in the text what id the record was)
+
+7. AddressBook's entries instance no long returns anything. We'll fix this in a later checkpoint. What changes will we need to make?
+
+We will need to connect the database to an instance of the class. We will also need to change the add_entry and import_from_csv methods to use the methods we have created for updating the database. We might also want to delete the attr_accessor :entries line and replace 'entries' in the code.
