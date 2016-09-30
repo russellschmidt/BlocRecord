@@ -1,6 +1,7 @@
 def find_by (attribute, value)
     connection.execute <<-SQL
-        SELECT #{self.class.table} 
+        SELECT (*) 
+        FROM #{self.class.table} 
         WHERE #{attribute} = #{value};
     SQL
 end
