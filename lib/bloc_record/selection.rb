@@ -28,7 +28,8 @@ module Selection
   def find_by(attribute, value)
   	row = connection.get_first_row <<-SQL
   		SELECT #{columns.join ","} FROM #{table}
-  		WHERE #{attribute} = #{BlocRecord::Utility.sql_strings(value)};
+  		WHERE #{attribute} 
+  		IN #{BlocRecord::Utility.sql_strings(value)};
   	SQL
 
   	init_object_from_row(row)
@@ -39,7 +40,8 @@ module Selection
   def find_all(attribute, value)
   	rows = connection.execute <<-SQL
   		SELECT #{columns.join ","} FROM #{table}
-  		WHERE #{attribute} IN (#{BlocRecord::Utility.sql_strings(value)});
+  		WHERE #{attribute} 
+  		IN (#{BlocRecord::Utility.sql_strings(value)});
   	SQL
 
   	rows_to_array(rows)
@@ -71,6 +73,7 @@ module Selection
   	init_object_from_row(row)
   end
 
+
   def first
   	row = connection.get_first_row <<-SQL
   		SELECT #{columns.join ","} FROM #{table}
@@ -80,6 +83,7 @@ module Selection
 
   	init_object_from_row(row)
   end
+
 
   def last
   	row = connection.get_first_row <<-SQL
@@ -92,12 +96,25 @@ module Selection
   end
 
 
+  def all
+  	rows = connection.execute <<-SQL
+  		SELECT #{columns.join ","} FROM #{table};
+  	SQL
+
+  	rows_to_array(rows)
+  end
+
+
   private
   def init_object_from_row(row)
   	if row
 	  	data = Hash[columns.zip(row)]
 		  new(data)
 		end
+  end
+
+  def rows_to_array(rows)
+  	rows.map { |row| new(Hash[columns.zip(row)]) }
   end
 
 end
