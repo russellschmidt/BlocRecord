@@ -35,6 +35,63 @@ module Selection
   end
 
 
+  # for checkpoint 3 assignment
+  def find_all(attribute, value)
+  	rows = connection.execute <<-SQL
+  		SELECT #{columns.join ","} FROM #{table}
+  		WHERE #{attribute} IN (#{BlocRecord::Utility.sql_strings(value)});
+  	SQL
+
+  	rows_to_array(rows)
+  end
+
+
+  def take(num=1)
+  	if num > 1
+  		rows = connection.execute <<-SQL
+  			SELECT #{columns.join ","} FROM #{table}
+  			ORDER BY random()
+  			LIMIT #{num};
+  		SQL
+
+  		rows_to_array
+  	else
+  		take_one
+  	end
+  end
+
+
+  def take_one
+  	row = connection.get_first_row <<-SQL
+  		SELECT #{columns.join ","} FROM #{table}
+  		ORDER BY random()
+  		LIMIT 1;
+  	SQL
+
+  	init_object_from_row(row)
+  end
+
+  def first
+  	row = connection.get_first_row <<-SQL
+  		SELECT #{columns.join ","} FROM #{table}
+  		ORDER BY id
+  		ASC LIMIT 1;
+  	SQL
+
+  	init_object_from_row(row)
+  end
+
+  def last
+  	row = connection.get_first_row <<-SQL
+  		SELECT #{columns.join ","} FROM #{table}
+  		ORDER BY id
+  		DESC LIMIT 1;
+  	SQL
+
+  	init_object_from_row(row)
+  end
+
+
   private
   def init_object_from_row(row)
   	if row
