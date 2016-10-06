@@ -7,24 +7,32 @@ module Selection
 		max = connection.execute <<-SQL
 			SELECT MAX(id) FROM #{table}
 		SQL
+		in_range = true
 
 		ids.each do |id|
 			if id < min
 				puts "id out of range (id < 0)"
-				return false
+				return in_range = false
 			elsif id > max
-				return false
 				puts "id out of range (id > max(id))"
+				return in_range = false
 			end
 		end
 
-		true
+		in_range
 	end
+
 
   def find(*ids)
   	unless ids.nil?
   		if ids.is_a? String
-  			[ids.to_i] unless ids.match(\/D\) != nil
+  			begin
+	  			ids = ids.to_i
+  			rescue 
+  				puts "Selection id is not a valid number"
+  			else
+  				ids = [ids]
+  			end
   		elsif ids.is_a? Numeric
   			ids = [ids]
   		elsif ids.is_a? Array
@@ -33,7 +41,7 @@ module Selection
   			puts "Selection ID not a valid format"
   		end
 
-  		if ids_in_range(ids)
+  		if ids_in_range?(ids)
 		  	if ids.length == 1
 		  		find_one(ids.first)
 		  	else
@@ -50,50 +58,72 @@ module Selection
 
 
   def find_one(id)
-      row = connection.get_first_row <<-SQL
-          SELECT #{columns.join ","} FROM #{table}
-          WHERE id = #{id};
-      SQL
+    row = connection.get_first_row <<-SQL
+        SELECT #{columns.join ","} FROM #{table}
+        WHERE id = #{id};
+    SQL
 
-      init_object_from_row(row)
+    init_object_from_row(row)
   end
 
 
   def find_by(attribute, value)
-  	row = connection.get_first_row <<-SQL
-  		SELECT #{columns.join ","} FROM #{table}
-  		WHERE #{attribute} 
-  		IN #{BlocRecord::Utility.sql_strings(value)};
-  	SQL
+  	begin 
+  		value = value.to_s unless value.is_a? String
+  	rescue
+  		puts "Sorry, the value you are looking for is of an invalid data type."
+  	else
+	  	row = connection.get_first_row <<-SQL
+	  		SELECT #{columns.join ","} FROM #{table}
+	  		WHERE #{attribute} 
+	  		IN #{BlocRecord::Utility.sql_strings(value)};
+	  	SQL
 
-  	init_object_from_row(row)
+	  	init_object_from_row(row)
+	  end
   end
 
 
   # for checkpoint 3 assignment
   def find_all(attribute, value)
-  	rows = connection.execute <<-SQL
-  		SELECT #{columns.join ","} FROM #{table}
-  		WHERE #{attribute} 
-  		IN (#{BlocRecord::Utility.sql_strings(value)});
-  	SQL
+  	begin 
+  		value = value.to_s unless value.is_a? String
+  	rescue
+  		puts "Sorry, the value you are looking for is of an invalid data type."
+  	else
+	  	rows = connection.execute <<-SQL
+	  		SELECT #{columns.join ","} FROM #{table}
+	  		WHERE #{attribute} 
+	  		IN (#{BlocRecord::Utility.sql_strings(value)});
+	  	SQL
 
-  	rows_to_array(rows)
+	  	rows_to_array(rows)
+	  end
   end
 
 
   def take(num=1)
-  	if num > 1
-  		rows = connection.execute <<-SQL
-  			SELECT #{columns.join ","} FROM #{table}
-  			ORDER BY random()
-  			LIMIT #{num};
-  		SQL
+  	max = connection.execute <<-SQL
+			SELECT MAX(id) FROM #{table}
+		SQL
 
-  		rows_to_array
-  	else
-  		take_one
-  	end
+		if num < 1
+			puts "You must select more than zero items."
+		elsif num > max
+			puts "You want more items than exist in the database (maximum: #{max})."
+		else
+	  	if num > 1
+	  		rows = connection.execute <<-SQL
+	  			SELECT #{columns.join ","} FROM #{table}
+	  			ORDER BY random()
+	  			LIMIT #{num};
+	  		SQL
+
+	  		rows_to_array
+	  	else
+	  		take_one
+	  	end
+	  end
   end
 
 
