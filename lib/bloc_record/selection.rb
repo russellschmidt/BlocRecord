@@ -1,17 +1,51 @@
 require 'sqlite3'
 
 module Selection
-  def find(*ids)
-  	if ids.length == 1
-  		find_one(ids.first)
-  	else
-  		rows = connection.execute <<-SQL
-  			SELECT #{columns.join ","} FROM #{table}
-  			WHERE id IN (#{ids.join(",")});
-  		SQL
 
-  		rows_to_array(rows)
-  	end
+	def ids_in_range?(*ids)
+		min = 1
+		max = connection.execute <<-SQL
+			SELECT MAX(id) FROM #{table}
+		SQL
+
+		ids.each do |id|
+			if id < min
+				puts "id out of range (id < 0)"
+				return false
+			elsif id > max
+				return false
+				puts "id out of range (id > max(id))"
+			end
+		end
+
+		true
+	end
+
+  def find(*ids)
+  	unless ids.nil?
+  		if ids.is_a? String
+  			[ids.to_i] unless ids.match(\/D\) != nil
+  		elsif ids.is_a? Numeric
+  			ids = [ids]
+  		elsif ids.is_a? Array
+  			ids.compact!
+  		else
+  			puts "Selection ID not a valid format"
+  		end
+
+  		if ids_in_range(ids)
+		  	if ids.length == 1
+		  		find_one(ids.first)
+		  	else
+		  		rows = connection.execute <<-SQL
+		  			SELECT #{columns.join ","} FROM #{table}
+		  			WHERE id IN (#{ids.join(",")});
+		  		SQL
+
+		  		rows_to_array(rows)
+		  	end
+		  end
+	  end
   end
 
 
